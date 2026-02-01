@@ -1,38 +1,49 @@
-const express = require("express");
-const bodyParser = require("body-parser");
 
+// index.js
+const express = require('express');
 const app = express();
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
 
-// Test route to check server
+// Parse URL-encoded and JSON bodies
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+// Optional: test route for browser
 app.get("/", (req, res) => {
-  res.send("USSD backend running");
+    res.send("USSD backend running");
 });
 
-// USSD endpoint
+// Main USSD route
 app.post("/ussd", (req, res) => {
-  const text = req.body.text || "";
-  let response = "";
+    const { text, phoneNumber, sessionId } = req.body;
 
-  if (text === "") {
-    response = `CON Welcome to B&L Microfinance
-1. Apply Loan
-2. Repay Loan
-3. Check Balance`;
-  } else if (text === "1") {
-    response = "END Loan request received";
-  } else if (text === "2") {
-    response = "END Please pay via Mpesa";
-  } else if (text === "3") {
-    response = "END Balance will be sent via SMS";
-  } else {
-    response = "END Invalid option";
-  }
+    let response = "";
 
-  res.set("Content-Type", "text/plain");
-  res.send(response);
+    // First menu
+    if (text === "") {
+        response = "CON Welcome to B&L Microfinance\n1. Apply Loan\n2. Repay Loan\n3. Check Balance";
+    }
+    // User selects Apply Loan
+    else if (text === "1") {
+        response = "END Loan request received";
+    }
+    // User selects Repay Loan
+    else if (text === "2") {
+        response = "END Please pay via Mpesa";
+    }
+    // User selects Check Balance
+    else if (text === "3") {
+        response = "END Balance will be sent via SMS";
+    }
+    // Invalid choice
+    else {
+        response = "END Invalid choice";
+    }
+
+    // Respond with correct content type
+    res.set("Content-Type", "text/plain");
+    res.send(response);
 });
 
+// Listen on the port provided by Render
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
